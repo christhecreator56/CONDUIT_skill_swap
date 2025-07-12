@@ -8,11 +8,7 @@ import bcrypt from 'bcryptjs';
 export const userService = {
   // Create a new user
   async create(userData: Omit<NewUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<typeof users.$inferSelect> {
-    const hashedPassword = await bcrypt.hash(userData.password, 12);
-    const [user] = await db.insert(users).values({
-      ...userData,
-      password: hashedPassword,
-    }).returning();
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   },
 
