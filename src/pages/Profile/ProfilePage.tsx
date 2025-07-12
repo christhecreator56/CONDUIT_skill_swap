@@ -5,6 +5,7 @@ import { updateProfile } from '../../store/slices/authSlice'
 import { fetchUserSkills, addSkill, removeSkill } from '../../store/slices/skillsSlice'
 import { Skill } from '../../store/slices/skillsSlice'
 import ClickSpark from '../../components/ClickSpark'
+import { Plus } from 'lucide-react'
 
 const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -35,6 +36,9 @@ const ProfilePage = () => {
     type: 'offered' as 'offered' | 'wanted'
   })
 
+  const [showAddOffered, setShowAddOffered] = useState(false)
+  const [showAddWanted, setShowAddWanted] = useState(false)
+
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchUserSkills(user.id))
@@ -42,8 +46,9 @@ const ProfilePage = () => {
   }, [dispatch, user?.id])
 
   const handleProfileUpdate = async () => {
+    if (!user?.id) return;
     try {
-      await dispatch(updateProfile(profileData))
+      await dispatch(updateProfile({ userId: user.id!, profileData }))
       setIsEditing(false)
     } catch (error) {
       console.error('Failed to update profile:', error)
@@ -60,7 +65,8 @@ const ProfilePage = () => {
         category: newSkill.category,
         proficiencyLevel: newSkill.proficiencyLevel,
         userId: user.id,
-        type: newSkill.type
+        type: newSkill.type,
+        isPublic: true
       }))
       setNewSkill({
         name: '',
@@ -89,8 +95,8 @@ const ProfilePage = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-          <p className="text-gray-600">Manage your profile and preferences</p>
+          <h1 className="text-2xl font-bold text-white">Profile</h1>
+          <p className="text-gray-400">Manage your profile and preferences</p>
         </div>
         <ClickSpark
           sparkColor="#3b82f6"
@@ -110,11 +116,11 @@ const ProfilePage = () => {
 
       {/* Basic Information */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Profile Photo
             </label>
             <div className="flex items-center space-x-4">
@@ -137,7 +143,7 @@ const ProfilePage = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 First Name
               </label>
               <input
@@ -150,7 +156,7 @@ const ProfilePage = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Last Name
               </label>
               <input
@@ -165,7 +171,7 @@ const ProfilePage = () => {
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Location (Optional)
           </label>
           <input
@@ -179,7 +185,7 @@ const ProfilePage = () => {
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Bio
           </label>
           <textarea
@@ -201,7 +207,7 @@ const ProfilePage = () => {
               disabled={!isEditing}
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <span className="ml-2 text-sm text-gray-700">Make my profile public</span>
+            <span className="ml-2 text-sm text-gray-300">Make my profile public</span>
           </label>
         </div>
 
@@ -220,7 +226,7 @@ const ProfilePage = () => {
 
       {/* Availability */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Availability</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">Availability</h3>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <label className="flex items-center">
@@ -234,7 +240,7 @@ const ProfilePage = () => {
               disabled={!isEditing}
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <span className="ml-2 text-sm text-gray-700">Weekends</span>
+            <span className="ml-2 text-sm text-gray-400">Weekends</span>
           </label>
           
           <label className="flex items-center">
@@ -248,7 +254,7 @@ const ProfilePage = () => {
               disabled={!isEditing}
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <span className="ml-2 text-sm text-gray-700">Evenings</span>
+            <span className="ml-2 text-sm text-gray-400">Evenings</span>
           </label>
           
           <label className="flex items-center">
@@ -262,12 +268,12 @@ const ProfilePage = () => {
               disabled={!isEditing}
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <span className="ml-2 text-sm text-gray-700">Weekdays</span>
+            <span className="ml-2 text-sm text-gray-400">Weekdays</span>
           </label>
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Custom Availability
           </label>
           <input
@@ -286,44 +292,49 @@ const ProfilePage = () => {
 
       {/* Skills Offered */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills I Can Offer</h3>
-        
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">Skills I Can Offer
+          <button
+            className="ml-2 p-1 rounded hover:bg-[#232428] transition-colors"
+            onClick={() => setShowAddOffered((v) => !v)}
+            type="button"
+            aria-label="Add Skill"
+          >
+            <Plus className="h-5 w-5 text-primary-500" />
+          </button>
+        </h3>
         <div className="space-y-4">
           {skillsOffered.map((skill: Skill) => (
-            <div key={skill.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div key={skill.id} className="flex items-center justify-between p-4 bg-[#232428] rounded-lg">
               <div>
-                <h4 className="font-medium text-gray-900">{skill.name}</h4>
-                <p className="text-sm text-gray-600">{skill.description}</p>
+                <h4 className="font-medium text-white">{skill.name}</h4>
+                <p className="text-sm text-gray-400">{skill.description}</p>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="skill-tag">{skill.category}</span>
                   <span className="text-xs text-gray-500 capitalize">{skill.proficiencyLevel}</span>
                 </div>
               </div>
-              {isEditing && (
-                <button
-                  onClick={() => handleRemoveSkill(skill.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Remove
-                </button>
-              )}
+              <button
+                onClick={() => handleRemoveSkill(skill.id)}
+                className="text-red-600 hover:text-red-800"
+              >
+                Remove
+              </button>
             </div>
           ))}
-          
-          {isEditing && (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Add New Skill to Offer</h4>
+          {showAddOffered && (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-[#232428]">
+              <h4 className="font-medium text-white mb-3">Add New Skill to Offer</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
                   placeholder="Skill name"
                   value={newSkill.name}
-                  onChange={(e) => setNewSkill({...newSkill, name: e.target.value})}
+                  onChange={(e) => setNewSkill({...newSkill, name: e.target.value, type: 'offered'})}
                   className="input-field"
                 />
                 <select
                   value={newSkill.category}
-                  onChange={(e) => setNewSkill({...newSkill, category: e.target.value})}
+                  onChange={(e) => setNewSkill({...newSkill, category: e.target.value, type: 'offered'})}
                   className="input-field"
                 >
                   <option value="">Select category</option>
@@ -340,14 +351,14 @@ const ProfilePage = () => {
               <textarea
                 placeholder="Description"
                 value={newSkill.description}
-                onChange={(e) => setNewSkill({...newSkill, description: e.target.value})}
+                onChange={(e) => setNewSkill({...newSkill, description: e.target.value, type: 'offered'})}
                 rows={2}
                 className="input-field mt-2"
               />
               <div className="flex items-center space-x-4 mt-2">
                 <select
                   value={newSkill.proficiencyLevel}
-                  onChange={(e) => setNewSkill({...newSkill, proficiencyLevel: e.target.value as any})}
+                  onChange={(e) => setNewSkill({...newSkill, proficiencyLevel: e.target.value as any, type: 'offered'})}
                   className="input-field"
                 >
                   <option value="beginner">Beginner</option>
@@ -356,11 +367,18 @@ const ProfilePage = () => {
                   <option value="expert">Expert</option>
                 </select>
                 <button
-                  onClick={handleAddSkill}
+                  onClick={async () => { await handleAddSkill(); setShowAddOffered(false); }}
                   disabled={!newSkill.name.trim()}
                   className="btn-primary"
                 >
-                  Add Skill
+                  Save
+                </button>
+                <button
+                  onClick={() => setShowAddOffered(false)}
+                  className="btn-secondary"
+                  type="button"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
@@ -370,44 +388,49 @@ const ProfilePage = () => {
 
       {/* Skills Wanted */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills I Want to Learn</h3>
-        
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">Skills I Want to Learn
+          <button
+            className="ml-2 p-1 rounded hover:bg-[#232428] transition-colors"
+            onClick={() => setShowAddWanted((v) => !v)}
+            type="button"
+            aria-label="Add Skill"
+          >
+            <Plus className="h-5 w-5 text-primary-500" />
+          </button>
+        </h3>
         <div className="space-y-4">
           {skillsWanted.map((skill: Skill) => (
-            <div key={skill.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div key={skill.id} className="flex items-center justify-between p-4 bg-[#232428] rounded-lg">
               <div>
-                <h4 className="font-medium text-gray-900">{skill.name}</h4>
-                <p className="text-sm text-gray-600">{skill.description}</p>
+                <h4 className="font-medium text-white">{skill.name}</h4>
+                <p className="text-sm text-gray-400">{skill.description}</p>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="skill-tag">{skill.category}</span>
                   <span className="text-xs text-gray-500 capitalize">{skill.proficiencyLevel}</span>
                 </div>
               </div>
-              {isEditing && (
-                <button
-                  onClick={() => handleRemoveSkill(skill.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Remove
-                </button>
-              )}
+              <button
+                onClick={() => handleRemoveSkill(skill.id)}
+                className="text-red-600 hover:text-red-800"
+              >
+                Remove
+              </button>
             </div>
           ))}
-          
-          {isEditing && (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Add Skill I Want to Learn</h4>
+          {showAddWanted && (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-[#232428]">
+              <h4 className="font-medium text-white mb-3">Add Skill I Want to Learn</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
                   placeholder="Skill name"
                   value={newSkill.name}
-                  onChange={(e) => setNewSkill({...newSkill, name: e.target.value})}
+                  onChange={(e) => setNewSkill({...newSkill, name: e.target.value, type: 'wanted'})}
                   className="input-field"
                 />
                 <select
                   value={newSkill.category}
-                  onChange={(e) => setNewSkill({...newSkill, category: e.target.value})}
+                  onChange={(e) => setNewSkill({...newSkill, category: e.target.value, type: 'wanted'})}
                   className="input-field"
                 >
                   <option value="">Select category</option>
@@ -424,14 +447,14 @@ const ProfilePage = () => {
               <textarea
                 placeholder="Description"
                 value={newSkill.description}
-                onChange={(e) => setNewSkill({...newSkill, description: e.target.value})}
+                onChange={(e) => setNewSkill({...newSkill, description: e.target.value, type: 'wanted'})}
                 rows={2}
                 className="input-field mt-2"
               />
               <div className="flex items-center space-x-4 mt-2">
                 <select
                   value={newSkill.proficiencyLevel}
-                  onChange={(e) => setNewSkill({...newSkill, proficiencyLevel: e.target.value as any})}
+                  onChange={(e) => setNewSkill({...newSkill, proficiencyLevel: e.target.value as any, type: 'wanted'})}
                   className="input-field"
                 >
                   <option value="beginner">Beginner</option>
@@ -440,14 +463,18 @@ const ProfilePage = () => {
                   <option value="expert">Expert</option>
                 </select>
                 <button
-                  onClick={() => {
-                    setNewSkill({...newSkill, type: 'wanted'})
-                    handleAddSkill()
-                  }}
+                  onClick={async () => { await handleAddSkill(); setShowAddWanted(false); }}
                   disabled={!newSkill.name.trim()}
                   className="btn-primary"
                 >
-                  Add Skill
+                  Save
+                </button>
+                <button
+                  onClick={() => setShowAddWanted(false)}
+                  className="btn-secondary"
+                  type="button"
+                >
+                  Cancel
                 </button>
               </div>
             </div>

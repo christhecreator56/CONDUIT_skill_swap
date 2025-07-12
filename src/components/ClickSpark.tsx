@@ -14,7 +14,7 @@ interface ClickSparkProps {
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth <= 600;
 
 const ClickSpark = ({
-  sparkColor = "#0051FFFF",
+  sparkColor = "#00D4FF",
   sparkSize = 10,
   sparkRadius = 15,
   sparkCount = 8,

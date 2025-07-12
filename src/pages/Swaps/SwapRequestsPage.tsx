@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../store/store'
 import { respondToSwapRequest, submitFeedback, deleteSwapRequest } from '../../store/slices/swapsSlice'
-import { SwapRequest, SwapFeedback } from '../../store/slices/swapsSlice'
+import { SwapRequest } from '../../store/slices/swapsSlice'
 import ClickSpark from '../../components/ClickSpark'
 
 const SwapRequestsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { sentRequests, receivedRequests, completedSwaps, isLoading } = useSelector((state: RootState) => state.swaps)
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { isLoading } = useSelector((state: RootState) => state.swaps)
   
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'completed'>('received')
   const [selectedRequest, setSelectedRequest] = useState<SwapRequest | null>(null)
@@ -134,11 +133,11 @@ const SwapRequestsPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'text-yellow-600 bg-yellow-100'
-      case 'accepted': return 'text-green-600 bg-green-100'
-      case 'rejected': return 'text-red-600 bg-red-100'
-      case 'completed': return 'text-blue-600 bg-blue-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'pending': return 'text-yellow-300 bg-yellow-900/30'
+      case 'accepted': return 'text-green-300 bg-green-900/30'
+      case 'rejected': return 'text-red-300 bg-red-900/30'
+      case 'completed': return 'text-blue-300 bg-blue-900/30'
+      default: return 'text-gray-300 bg-gray-800/60'
     }
   }
 
@@ -152,7 +151,7 @@ const SwapRequestsPage = () => {
         />
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-medium text-gray-900">{request.requesterName}</h3>
+            <h3 className="font-medium text-white">{request.requesterName}</h3>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
               {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
             </span>
@@ -160,20 +159,20 @@ const SwapRequestsPage = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
             <div>
-              <h4 className="text-sm font-medium text-gray-700">You'll Learn</h4>
-              <p className="text-sm text-gray-900">{request.skillRequested.name}</p>
-              <p className="text-xs text-gray-600">{request.skillRequested.description}</p>
+              <h4 className="text-sm font-medium text-gray-300">You'll Learn</h4>
+              <p className="text-sm text-white">{request.skillRequested.name}</p>
+              <p className="text-xs text-gray-400">{request.skillRequested.description}</p>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-700">You'll Teach</h4>
-              <p className="text-sm text-gray-900">{request.skillOffered.name}</p>
-              <p className="text-xs text-gray-600">{request.skillOffered.description}</p>
+              <h4 className="text-sm font-medium text-gray-300">You'll Teach</h4>
+              <p className="text-sm text-white">{request.skillOffered.name}</p>
+              <p className="text-xs text-gray-400">{request.skillOffered.description}</p>
             </div>
           </div>
 
           {request.message && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-700">{request.message}</p>
+            <div className="mb-3 p-3 bg-[#232428] rounded-lg">
+              <p className="text-sm text-gray-200">{request.message}</p>
             </div>
           )}
 
@@ -194,13 +193,13 @@ const SwapRequestsPage = () => {
                   >
                     <button
                       onClick={() => handleRespondToRequest(request.id, 'accepted')}
-                      className="btn-success text-sm py-1 px-3"
+                      className="btn-success text-sm py-1 px-3 bg-green-700 hover:bg-green-800 text-white"
                     >
                       Accept
                     </button>
                   </ClickSpark>
                   <ClickSpark
-                    sparkColor="#dc2626"
+                    sparkColor="#ED4245"
                     sparkSize={6}
                     sparkRadius={15}
                     sparkCount={4}
@@ -208,7 +207,7 @@ const SwapRequestsPage = () => {
                   >
                     <button
                       onClick={() => handleRespondToRequest(request.id, 'rejected')}
-                      className="btn-danger text-sm py-1 px-3"
+                      className="btn-danger text-sm py-1 px-3 bg-red-700 hover:bg-red-800 text-white"
                     >
                       Reject
                     </button>
@@ -243,8 +242,8 @@ const SwapRequestsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Swap Requests</h1>
-        <p className="text-gray-600">Manage your incoming and outgoing skill swap requests</p>
+        <h1 className="text-2xl font-bold text-white">Swap Requests</h1>
+        <p className="text-gray-400">Manage your incoming and outgoing skill swap requests</p>
       </div>
 
       {/* Tabs */}

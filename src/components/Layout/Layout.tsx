@@ -1,15 +1,19 @@
 import { Outlet } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { RootState } from '../../store/store'
+import type { RootState } from '../../store/store'
 import Sidebar from './Sidebar'
+import type { UIState } from '../../store/slices/uiSlice'
 
 const Layout = () => {
-  const { sidebar } = useSelector((state: RootState) => state.ui)
+  const sidebarIsOpen = useSelector((state: RootState) => {
+    const ui = state.ui as UIState | undefined
+    return ui?.sidebar?.isOpen ?? false
+  })
 
   return (
     <div className="flex h-screen bg-[#313338]">
       {/* Sidebar */}
-      <Sidebar isOpen={sidebar.isOpen} />
+      <Sidebar isOpen={sidebarIsOpen} />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">

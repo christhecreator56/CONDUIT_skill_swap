@@ -7,7 +7,7 @@ import ClickSpark from '../../components/ClickSpark'
 
 const BrowsePage = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { skillListings, searchResults, categories, isLoading, searchFilters } = useSelector((state: RootState) => state.skills)
+  const { skillListings, categories, isLoading, searchFilters } = useSelector((state: RootState) => state.skills) as import('../../store/slices/skillsSlice').SkillsState;
   const { user } = useSelector((state: RootState) => state.auth)
   
   const [searchTerm, setSearchTerm] = useState('')
@@ -22,20 +22,12 @@ const BrowsePage = () => {
   useEffect(() => {
     // Filter results based on search term
     if (searchTerm.trim()) {
-      const filtered = skillListings.filter(listing => 
-        listing.skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.skill.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.skill.category.toLowerCase().includes(searchTerm.toLowerCase())
-      )
       // TODO: Update search results in store
     }
   }, [searchTerm, skillListings])
 
   const handleSearch = () => {
-    dispatch(fetchSkillListings({
-      category: searchFilters.category,
-      location: searchFilters.location
-    }))
+    dispatch(fetchSkillListings())
   }
 
   const handleClearFilters = () => {
@@ -43,17 +35,13 @@ const BrowsePage = () => {
     setSearchTerm('')
   }
 
-  const handleRequestSwap = async (skillListing: SkillListing) => {
+  const handleRequestSwap = async () => {
     if (!user) return
     
     try {
       // Find a skill that the current user can offer
       // For now, we'll use a mock skill
-      await dispatch(sendSwapRequest({
-        skillOfferedId: 'mock-offered-skill',
-        skillRequestedId: skillListing.skill.id,
-        message: swapMessage
-      }))
+      await dispatch(sendSwapRequest())
       setSelectedSkill(null)
       setSwapMessage('')
     } catch (error) {
@@ -62,7 +50,7 @@ const BrowsePage = () => {
   }
 
   const filteredListings = searchTerm.trim() 
-    ? skillListings.filter(listing => 
+    ? skillListings.filter((listing: SkillListing) => 
         listing.skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         listing.skill.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         listing.skill.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -72,8 +60,8 @@ const BrowsePage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Browse Skills</h1>
-        <p className="text-gray-600">Discover skills available for exchange</p>
+        <h1 className="text-2xl font-bold text-white">Browse Skills</h1>
+        <p className="text-gray-400">Discover skills available for exchange</p>
       </div>
 
       {/* Search and Filters */}
@@ -105,32 +93,32 @@ const BrowsePage = () => {
         </div>
 
         {showFilters && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-4 p-4 bg-[#232428] rounded-lg">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Category
                 </label>
                 <select
                   value={searchFilters.category}
                   onChange={(e) => dispatch(setSearchFilters({ category: e.target.value }))}
-                  className="input-field"
+                  className="input-field bg-[#232428] text-white border-gray-600 focus:border-primary-500"
                 >
                   <option value="">All Categories</option>
-                  {categories.map(category => (
+                  {categories.map((category: string) => (
                     <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Proficiency Level
                 </label>
                 <select
                   value={searchFilters.proficiencyLevel}
                   onChange={(e) => dispatch(setSearchFilters({ proficiencyLevel: e.target.value }))}
-                  className="input-field"
+                  className="input-field bg-[#232428] text-white border-gray-600 focus:border-primary-500"
                 >
                   <option value="">All Levels</option>
                   <option value="beginner">Beginner</option>
@@ -141,7 +129,7 @@ const BrowsePage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Location
                 </label>
                 <input
@@ -149,7 +137,7 @@ const BrowsePage = () => {
                   placeholder="Enter location"
                   value={searchFilters.location}
                   onChange={(e) => dispatch(setSearchFilters({ location: e.target.value }))}
-                  className="input-field"
+                  className="input-field bg-[#232428] text-white border-gray-600 focus:border-primary-500"
                 />
               </div>
             </div>
@@ -157,13 +145,13 @@ const BrowsePage = () => {
             <div className="flex gap-2 mt-4">
               <button
                 onClick={handleSearch}
-                className="btn-primary"
+                className="btn-primary bg-primary-600 hover:bg-primary-700 text-white"
               >
                 Apply Filters
               </button>
               <button
                 onClick={handleClearFilters}
-                className="btn-secondary"
+                className="btn-secondary bg-gray-700 hover:bg-gray-600 text-gray-200"
               >
                 Clear All
               </button>
@@ -175,7 +163,7 @@ const BrowsePage = () => {
       {/* Results */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-white">
             {filteredListings.length} skill{filteredListings.length !== 1 ? 's' : ''} found
           </h2>
         </div>
@@ -183,11 +171,11 @@ const BrowsePage = () => {
         {isLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="text-gray-600 mt-2">Loading skills...</p>
+            <p className="text-gray-400 mt-2">Loading skills...</p>
           </div>
         ) : filteredListings.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">No skills found matching your criteria.</p>
+            <p className="text-gray-400">No skills found matching your criteria.</p>
             <button
               onClick={handleClearFilters}
               className="btn-primary mt-2"
@@ -197,7 +185,7 @@ const BrowsePage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing) => (
+            {filteredListings.map((listing: SkillListing) => (
               <ClickSpark
                 key={listing.id}
                 sparkColor="#fff" // high-contrast white
@@ -216,12 +204,12 @@ const BrowsePage = () => {
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-white">
                           {listing.user.firstName} {listing.user.lastName}
                         </h3>
                         <div className="flex items-center space-x-1">
                           <span className="text-yellow-400">★</span>
-                          <span className="text-sm text-gray-600">{listing.user.rating}</span>
+                          <span className="text-sm text-gray-400">{listing.user.rating}</span>
                         </div>
                       </div>
                       {listing.user.location && (
@@ -231,8 +219,8 @@ const BrowsePage = () => {
                   </div>
 
                   <div className="mt-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">{listing.skill.name}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{listing.skill.description}</p>
+                    <h4 className="font-semibold text-white mb-2">{listing.skill.name}</h4>
+                    <p className="text-sm text-gray-400 mb-3">{listing.skill.description}</p>
                     <div className="flex items-center justify-between mb-4">
                       <span className="skill-tag">{listing.skill.category}</span>
                       <span className="text-xs text-gray-500 capitalize">
@@ -263,19 +251,19 @@ const BrowsePage = () => {
       {selectedSkill && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-white mb-4">
               Request Skill Swap
             </h3>
             
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-gray-400 mb-2">
                 You're requesting to learn <strong>{selectedSkill.skill.name}</strong> from{' '}
                 <strong>{selectedSkill.user.firstName} {selectedSkill.user.lastName}</strong>
               </p>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Message (Optional)
               </label>
               <textarea
@@ -298,7 +286,7 @@ const BrowsePage = () => {
                 Cancel
               </button>
               <button
-                onClick={() => handleRequestSwap(selectedSkill)}
+                onClick={() => handleRequestSwap()}
                 className="btn-primary flex-1"
               >
                 Send Request

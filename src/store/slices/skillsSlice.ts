@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { skillService } from '../../services/database'
 
 export interface Skill {
   id: string
@@ -9,6 +10,7 @@ export interface Skill {
   userId: string
   type: 'offered' | 'wanted'
   createdAt: string
+  isPublic: boolean
 }
 
 export interface SkillListing {
@@ -57,40 +59,29 @@ const initialState: SkillsState = {
 export const fetchUserSkills = createAsyncThunk(
   'skills/fetchUserSkills',
   async (userId: string) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<Skill[]>((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            id: '1',
-            name: 'React Development',
-            description: 'Building modern web applications with React',
-            category: 'Technology',
-            proficiencyLevel: 'advanced',
-            userId,
-            type: 'offered',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: '2',
-            name: 'Spanish',
-            description: 'Conversational Spanish speaking and writing',
-            category: 'Language',
-            proficiencyLevel: 'intermediate',
-            userId,
-            type: 'wanted',
-            createdAt: new Date().toISOString(),
-          },
-        ])
-      }, 1000)
-    })
-    return response
+    try {
+      const skills = await skillService.getByUserId(userId)
+      return skills.map(skill => ({
+        id: skill.id,
+        name: skill.name,
+        description: skill.description || '',
+        category: skill.category,
+        proficiencyLevel: skill.proficiencyLevel,
+        userId: skill.userId,
+        type: skill.type,
+        createdAt: skill.createdAt.toISOString(),
+        isPublic: skill.isPublic,
+      }))
+    } catch (error) {
+      console.error('Failed to fetch user skills:', error)
+      return []
+    }
   }
 )
 
 export const fetchSkillListings = createAsyncThunk(
   'skills/fetchSkillListings',
-  async (filters?: { category?: string; location?: string }) => {
+  async () => {
     // TODO: Replace with actual API call
     const response = await new Promise<SkillListing[]>((resolve) => {
       setTimeout(() => {
@@ -106,6 +97,7 @@ export const fetchSkillListings = createAsyncThunk(
               userId: '2',
               type: 'offered',
               createdAt: new Date().toISOString(),
+              isPublic: true,
             },
             user: {
               id: '2',
@@ -129,6 +121,7 @@ export const fetchSkillListings = createAsyncThunk(
               userId: '3',
               type: 'offered',
               createdAt: new Date().toISOString(),
+              isPublic: true,
             },
             user: {
               id: '3',
@@ -151,27 +144,38 @@ export const fetchSkillListings = createAsyncThunk(
 export const addSkill = createAsyncThunk(
   'skills/addSkill',
   async (skillData: Omit<Skill, 'id' | 'createdAt'>) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<Skill>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          ...skillData,
-          id: Math.random().toString(36).substr(2, 9),
-          createdAt: new Date().toISOString(),
-        })
-      }, 1000)
-    })
-    return response
+    try {
+      const skill = await skillService.create({
+        name: skillData.name,
+        description: skillData.description,
+        category: skillData.category,
+        proficiencyLevel: skillData.proficiencyLevel,
+        userId: skillData.userId,
+        type: skillData.type,
+        isPublic: skillData.isPublic,
+        isAvailable: true,
+      })
+      return {
+        id: skill.id,
+        name: skill.name,
+        description: skill.description || '',
+        category: skill.category,
+        proficiencyLevel: skill.proficiencyLevel,
+        userId: skill.userId,
+        type: skill.type,
+        createdAt: skill.createdAt.toISOString(),
+        isPublic: skill.isPublic,
+      }
+    } catch (error) {
+      console.error('Failed to add skill:', error)
+      throw error
+    }
   }
 )
 
 export const sendSwapRequest = createAsyncThunk(
   'skills/sendSwapRequest',
-  async (requestData: {
-    skillOfferedId: string
-    skillRequestedId: string
-    message?: string
-  }) => {
+  async () => {
     // TODO: Replace with actual API call
     const response = await new Promise<{ success: boolean; message: string }>((resolve) => {
       setTimeout(() => {
@@ -250,7 +254,7 @@ const skillsSlice = createSlice({
         state.isLoading = true
         state.error = null
       })
-      .addCase(sendSwapRequest.fulfilled, (state, action) => {
+      .addCase(sendSwapRequest.fulfilled, (state) => {
         state.isLoading = false
         // Could add success message handling here
       })

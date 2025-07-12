@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, RootState } from '../../store/store'
+import { useState } from 'react'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../store/store'
 import { SwapRequest, SwapFeedback } from '../../store/slices/swapsSlice'
 
 const SwapHistoryPage = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const { completedSwaps, feedback, isLoading } = useSelector((state: RootState) => state.swaps)
+  const { isLoading } = useSelector((state: RootState) => state.swaps)
   const { user } = useSelector((state: RootState) => state.auth)
   
   const [selectedSwap, setSelectedSwap] = useState<SwapRequest | null>(null)
@@ -107,7 +106,7 @@ const SwapHistoryPage = () => {
           />
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-900">{swap.requesterName}</h3>
+              <h3 className="font-medium text-white">{swap.requesterName}</h3>
               <span className="px-2 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-100">
                 Completed
               </span>
@@ -115,20 +114,20 @@ const SwapHistoryPage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
               <div>
-                <h4 className="text-sm font-medium text-gray-700">You Learned</h4>
-                <p className="text-sm text-gray-900">{swap.skillRequested.name}</p>
-                <p className="text-xs text-gray-600">{swap.skillRequested.description}</p>
+                <h4 className="text-sm font-medium text-gray-300">You Learned</h4>
+                <p className="text-sm text-white">{swap.skillRequested.name}</p>
+                <p className="text-xs text-gray-400">{swap.skillRequested.description}</p>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-gray-700">You Taught</h4>
-                <p className="text-sm text-gray-900">{swap.skillOffered.name}</p>
-                <p className="text-xs text-gray-600">{swap.skillOffered.description}</p>
+                <h4 className="text-sm font-medium text-gray-300">You Taught</h4>
+                <p className="text-sm text-white">{swap.skillOffered.name}</p>
+                <p className="text-xs text-gray-400">{swap.skillOffered.description}</p>
               </div>
             </div>
 
             {swap.message && (
               <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700">{swap.message}</p>
+                <p className="text-sm text-gray-300">{swap.message}</p>
               </div>
             )}
 
@@ -193,8 +192,8 @@ const SwapHistoryPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Swap History</h1>
-        <p className="text-gray-600">View your completed skill exchanges and feedback</p>
+        <h1 className="text-2xl font-bold text-white">Swap History</h1>
+        <p className="text-gray-400">View your completed skill exchanges and feedback</p>
       </div>
 
       {/* Stats */}

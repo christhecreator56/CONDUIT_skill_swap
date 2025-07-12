@@ -10,18 +10,9 @@ const GlobalNavbar = () => {
   const dispatch = useDispatch()
   const location = useLocation()
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
-  const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY
-      setIsScrolled(scrollTop > 10)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  // Close mobile menu when route changes
 
   // Close mobile menu when route changes
   useEffect(() => {

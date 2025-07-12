@@ -1,4 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { authAPI } from '../../api/auth'
 
 export interface User {
   id: string
@@ -9,9 +10,15 @@ export interface User {
   location?: string
   profilePhoto?: string
   isPublic: boolean
+  availability: {
+    weekends: boolean
+    evenings: boolean
+    weekdays: boolean
+    custom?: string
+  }
   rating: number
-  totalSwaps: number
   createdAt: string
+  updatedAt: string
 }
 
 export interface AuthState {
@@ -33,27 +40,7 @@ const initialState: AuthState = {
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<{ user: User; token: string }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          user: {
-            id: '1',
-            email: credentials.email,
-            firstName: 'John',
-            lastName: 'Doe',
-            bio: 'Passionate about learning and sharing skills',
-            location: 'New York, NY',
-            profilePhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-            isPublic: true,
-            rating: 4.8,
-            totalSwaps: 12,
-            createdAt: new Date().toISOString(),
-          },
-          token: 'mock-jwt-token',
-        })
-      }, 1000)
-    })
+    const response = await authAPI.login(credentials)
     return response
   }
 )
@@ -61,52 +48,15 @@ export const login = createAsyncThunk(
 export const register = createAsyncThunk(
   'auth/register',
   async (userData: { email: string; password: string; firstName: string; lastName: string }) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<{ user: User; token: string }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          user: {
-            id: '1',
-            email: userData.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            bio: '',
-            location: '',
-            profilePhoto: '',
-            isPublic: true,
-            rating: 0,
-            totalSwaps: 0,
-            createdAt: new Date().toISOString(),
-          },
-          token: 'mock-jwt-token',
-        })
-      }, 1000)
-    })
+    const response = await authAPI.register(userData)
     return response
   }
 )
 
 export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
-  async (profileData: Partial<User>) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<User>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          id: '1',
-          email: 'john@example.com',
-          firstName: 'John',
-          lastName: 'Doe',
-          bio: profileData.bio || 'Passionate about learning and sharing skills',
-          location: profileData.location || 'New York, NY',
-          profilePhoto: profileData.profilePhoto || '',
-          isPublic: profileData.isPublic ?? true,
-          rating: 4.8,
-          totalSwaps: 12,
-          createdAt: new Date().toISOString(),
-        })
-      }, 1000)
-    })
+  async ({ userId, profileData }: { userId: string; profileData: Partial<User> }) => {
+    const response = await authAPI.updateProfile(userId, profileData)
     return response
   }
 )
@@ -134,10 +84,12 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false
-        state.user = action.payload.user
-        state.token = action.payload.token
+        state.user = { ...action.payload.user, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        state.token = action.payload.token || null
         state.isAuthenticated = true
-        localStorage.setItem('token', action.payload.token)
+        if (action.payload.token) {
+          localStorage.setItem('token', action.payload.token)
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false
@@ -150,10 +102,12 @@ const authSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false
-        state.user = action.payload.user
-        state.token = action.payload.token
+        state.user = { ...action.payload.user, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        state.token = action.payload.token || null
         state.isAuthenticated = true
-        localStorage.setItem('token', action.payload.token)
+        if (action.payload.token) {
+          localStorage.setItem('token', action.payload.token)
+        }
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false
@@ -166,7 +120,7 @@ const authSlice = createSlice({
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.isLoading = false
-        state.user = action.payload
+        state.user = { ...action.payload.user, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.isLoading = false
