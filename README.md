@@ -1,3 +1,6 @@
+# video explanation 
+https://drive.google.com/drive/folders/1iuWzWnL8ic4i6K-rGUhy2wDidd8RPi1q?usp=sharing
+
 # CONDuit - Skill Exchange Platform
 
 A modern, responsive front-end application for a peer-to-peer skill exchange platform that connects users who want to trade skills and knowledge.
