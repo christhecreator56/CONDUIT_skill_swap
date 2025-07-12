@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    /* Prevent zoom on input focus on iOS */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    @apply bg-[#313338] text-[#F2F3F5];
+    /* Improve touch scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+  }
+
+  /* Improve touch targets on mobile */
+  button, a, input, select, textarea {
+    @apply touch-manipulation;
+  }
+
+  /* Prevent text selection on interactive elements */
+  button, a {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Improve form elements on mobile */
+  input, textarea, select {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
+
+@layer components {
+  /* Discord-style buttons */
+  .btn-primary {
+    @apply bg-[#7289da] hover:bg-[#5b6eae] text-white font-medium py-2 px-4 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#7289da] focus:ring-offset-2 focus:ring-offset-[#313338];
+    /* Mobile optimizations */
+    min-height: 44px; /* Minimum touch target size */
+    @apply sm:min-h-0;
+  }
+  
+  .btn-secondary {
+    @apply bg-[#4F545C] hover:bg-[#5D6269] text-[#F2F3F5] font-medium py-2 px-4 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#4F545C] focus:ring-offset-2 focus:ring-offset-[#313338];
+    /* Mobile optimizations */
+    min-height: 44px; /* Minimum touch target size */
+    @apply sm:min-h-0;
+  }
+  
+  .btn-success {
+    @apply bg-[#57F287] hover:bg-[#3BA55C] text-[#313338] font-medium py-2 px-4 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#57F287] focus:ring-offset-2 focus:ring-offset-[#313338];
+    /* Mobile optimizations */
+    min-height: 44px; /* Minimum touch target size */
+    @apply sm:min-h-0;
+  }
+  
+  .btn-danger {
+    @apply bg-[#f04747] hover:bg-[#d84040] text-white font-medium py-2 px-4 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f04747] focus:ring-offset-2 focus:ring-offset-[#313338];
+    /* Mobile optimizations */
+    min-height: 44px; /* Minimum touch target size */
+    @apply sm:min-h-0;
+  }
+  
+  /* Discord-style input fields */
+  .input-field {
+    @apply w-full px-3 py-2 border border-[#4F545C] rounded-md focus:outline-none focus:ring-2 focus:ring-[#7289da] focus:border-transparent bg-[#404249] text-[#F2F3F5] placeholder-[#949BA4];
+    /* Mobile optimizations */
+    min-height: 44px; /* Minimum touch target size */
+    @apply sm:min-h-0;
+  }
+  
+  /* Discord-style cards */
+  .card {
+    @apply bg-[#2B2D31] rounded-md shadow-lg border border-[#404249] p-4 sm:p-6;
+  }
+  
+  /* Discord-style skill tags */
+  .skill-tag {
+    @apply inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-[#7289da] text-white;
+    /* Mobile optimizations */
+    min-height: 32px; /* Minimum touch target size */
+    @apply sm:min-h-0;
+  }
+
+  /* Discord-style navigation items */
+  .nav-item {
+    @apply flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 text-[#b9bbbe] hover:text-[#ffffff] hover:bg-[#2c2f33];
+  }
+
+  .nav-item.active {
+    @apply bg-[#7289da] text-white;
+  }
+
+  /* Discord-style sidebar */
+  .discord-sidebar {
+    @apply bg-[#2B2D31] border-r border-[#404249];
+  }
+
+  /* Discord-style header */
+  .discord-header {
+    @apply bg-[#2B2D31] border-b border-[#404249];
+  }
+
+  /* Discord-style glassmorphism */
+  .discord-glass {
+    @apply bg-[#1a1b1e]/90 backdrop-blur-xl border border-[#2c2f33]/50;
+  }
+
+  /* Discord-style scrollbar */
+  .discord-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .discord-scrollbar::-webkit-scrollbar-track {
+    @apply bg-[#2B2D31];
+  }
+
+  .discord-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-[#404249] rounded-full;
+  }
+
+  .discord-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-[#4F545C];
+  }
+
+  /* Mobile-specific utility classes */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mobile-safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Discord-style animations */
+  .discord-fade-in {
+    animation: discordFadeIn 0.2s ease-out;
+  }
+
+  @keyframes discordFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Discord-style hover effects */
+  .discord-hover {
+    @apply transition-all duration-200 hover:bg-[#2c2f33] hover:scale-[1.02];
+  }
+
+  /* Discord-style focus states */
+  .discord-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-[#7289da] focus:ring-offset-2 focus:ring-offset-[#313338];
+  }
+} 
