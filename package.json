@@ -12,15 +12,17 @@
     "db:migrate": "dotenv -e .env -- drizzle-kit migrate",
     "db:studio": "dotenv -e .env -- drizzle-kit studio",
     "db:push": "dotenv -e .env -- drizzle-kit push",
-    "db:init": "dotenv -e .env -- tsx scripts/init-db.ts"
+    "db:init": "dotenv -e .env -- tsx scripts/init-db.ts",
+    "db:seed": "dotenv -e .env -- tsx scripts/seed-comprehensive.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
     "@reduxjs/toolkit": "^1.9.5",
+    "@types/three": "^0.178.1",
     "axios": "^1.4.0",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.0.0",
-    "drizzle-kit": "^0.31.4",
+    "drizzle-kit": "^0.18.1",
     "drizzle-orm": "^0.44.2",
     "framer-motion": "^12.23.3",
     "lucide-react": "^0.263.1",
@@ -31,7 +33,8 @@
     "react-hot-toast": "^2.4.1",
     "react-redux": "^8.1.1",
     "react-router-dom": "^6.8.1",
-    "tailwind-merge": "^1.14.0"
+    "tailwind-merge": "^1.14.0",
+    "three": "^0.178.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

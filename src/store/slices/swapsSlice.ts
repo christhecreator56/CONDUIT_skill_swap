@@ -1,4 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { swapsAPI } from '../../api/swaps'
+import type { SwapRequestWithDetails } from '../../api/swaps'
 
 export interface SwapRequest {
   id: string
@@ -51,6 +53,30 @@ const initialState: SwapsState = {
   error: null,
 }
 
+// Helper function to convert SwapRequestWithDetails to SwapRequest
+const convertToSwapRequest = (apiRequest: any): SwapRequest => ({
+  id: apiRequest.id,
+  requesterId: apiRequest.requesterId,
+  requesterName: `${apiRequest.requester.firstName} ${apiRequest.requester.lastName}`,
+  requesterPhoto: apiRequest.requester.profilePhoto || undefined,
+  skillOffered: {
+    id: apiRequest.skillOffered.id,
+    name: apiRequest.skillOffered.name,
+    description: apiRequest.skillOffered.description || '',
+    category: apiRequest.skillOffered.category,
+  },
+  skillRequested: {
+    id: apiRequest.skillRequested.id,
+    name: apiRequest.skillRequested.name,
+    description: apiRequest.skillRequested.description || '',
+    category: apiRequest.skillRequested.category,
+  },
+  status: apiRequest.status,
+  message: apiRequest.message || undefined,
+  createdAt: apiRequest.createdAt.toISOString(),
+  updatedAt: apiRequest.updatedAt.toISOString(),
+})
+
 export const sendSwapRequest = createAsyncThunk(
   'swaps/sendRequest',
   async (requestData: {
@@ -58,68 +84,32 @@ export const sendSwapRequest = createAsyncThunk(
     skillRequestedId: string
     message?: string
   }) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<SwapRequest>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          id: Math.random().toString(36).substr(2, 9),
-          requesterId: '1',
-          requesterName: 'John Doe',
-          requesterPhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-          skillOffered: {
-            id: requestData.skillOfferedId,
-            name: 'React Development',
-            description: 'Building modern web applications',
-            category: 'Technology',
-          },
-          skillRequested: {
-            id: requestData.skillRequestedId,
-            name: 'Guitar Lessons',
-            description: 'Learn acoustic and electric guitar',
-            category: 'Music',
-          },
-          status: 'pending',
-          message: requestData.message,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-      }, 1000)
+    // Get current user ID from localStorage or auth state
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+    if (!currentUser.id) {
+      throw new Error('User not authenticated')
+    }
+
+    // Get the skill details to find the recipient
+    const skillRequested = await swapsAPI.getSwapRequestById(requestData.skillRequestedId)
+    
+    const response = await swapsAPI.createSwapRequest({
+      requesterId: currentUser.id,
+      recipientId: skillRequested.recipientId,
+      skillOfferedId: requestData.skillOfferedId,
+      skillRequestedId: requestData.skillRequestedId,
+      message: requestData.message,
     })
-    return response
+    
+    return convertToSwapRequest(response)
   }
 )
 
 export const respondToSwapRequest = createAsyncThunk(
   'swaps/respondToRequest',
   async ({ requestId, status }: { requestId: string; status: 'accepted' | 'rejected' }) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<SwapRequest>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          id: requestId,
-          requesterId: '1',
-          requesterName: 'John Doe',
-          requesterPhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-          skillOffered: {
-            id: '1',
-            name: 'React Development',
-            description: 'Building modern web applications',
-            category: 'Technology',
-          },
-          skillRequested: {
-            id: '2',
-            name: 'Guitar Lessons',
-            description: 'Learn acoustic and electric guitar',
-            category: 'Music',
-          },
-          status,
-          message: 'Let\'s exchange skills!',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-      }, 1000)
-    })
-    return response
+    const response = await swapsAPI.updateSwapRequestStatus(requestId, status)
+    return convertToSwapRequest(response)
   }
 )
 
@@ -131,37 +121,81 @@ export const submitFeedback = createAsyncThunk(
     rating: number
     comment: string
   }) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<SwapFeedback>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          id: Math.random().toString(36).substr(2, 9),
-          swapId: feedbackData.swapId,
-          fromUserId: '1',
-          toUserId: feedbackData.toUserId,
-          rating: feedbackData.rating,
-          comment: feedbackData.comment,
-          createdAt: new Date().toISOString(),
-        })
-      }, 1000)
+    const response = await swapsAPI.createFeedback({
+      swapId: feedbackData.swapId,
+      fromUserId: JSON.parse(localStorage.getItem('user') || '{}').id,
+      toUserId: feedbackData.toUserId,
+      rating: feedbackData.rating as 1 | 2 | 3 | 4 | 5,
+      comment: feedbackData.comment,
     })
-    return response
+    
+    return {
+      id: response.id,
+      swapId: response.swapId,
+      fromUserId: response.fromUserId,
+      toUserId: response.toUserId,
+      rating: response.rating,
+      comment: response.comment,
+      createdAt: response.createdAt.toISOString(),
+    }
   }
 )
 
 export const deleteSwapRequest = createAsyncThunk(
   'swaps/deleteRequest',
   async (requestId: string) => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<{ success: boolean; message: string }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          message: 'Swap request deleted successfully'
-        })
-      }, 1000)
-    })
-    return { requestId, ...response }
+    await swapsAPI.deleteSwapRequest(requestId)
+    return { requestId, success: true, message: 'Swap request deleted successfully' }
+  }
+)
+
+export const loadSwapRequests = createAsyncThunk(
+  'swaps/loadRequests',
+  async (userId: string) => {
+    const [sentRequests, receivedRequests, completedSwaps] = await Promise.all([
+      swapsAPI.getSwapRequestsByUserId(userId, 'sent'),
+      swapsAPI.getSwapRequestsByUserId(userId, 'received'),
+      swapsAPI.getCompletedSwaps(userId),
+    ])
+    
+    return {
+      sentRequests: sentRequests.map(convertToSwapRequest),
+      receivedRequests: receivedRequests.map(convertToSwapRequest),
+      completedSwaps: completedSwaps.map(convertToSwapRequest),
+    }
+  }
+)
+
+export const loadFeedback = createAsyncThunk(
+  'swaps/loadFeedback',
+  async (userId: string) => {
+    const [givenFeedback, receivedFeedback] = await Promise.all([
+      swapsAPI.getFeedbackByUserId(userId, 'given'),
+      swapsAPI.getFeedbackByUserId(userId, 'received'),
+    ])
+    
+    return {
+      feedback: [
+        ...givenFeedback.map(f => ({
+          id: f.id,
+          swapId: f.swapId,
+          fromUserId: f.fromUserId,
+          toUserId: f.toUserId,
+          rating: f.rating,
+          comment: f.comment,
+          createdAt: f.createdAt.toISOString(),
+        })),
+        ...receivedFeedback.map(f => ({
+          id: f.id,
+          swapId: f.swapId,
+          fromUserId: f.fromUserId,
+          toUserId: f.toUserId,
+          rating: f.rating,
+          comment: f.comment,
+          createdAt: f.createdAt.toISOString(),
+        }))
+      ]
+    }
   }
 )
 
@@ -232,6 +266,34 @@ const swapsSlice = createSlice({
       .addCase(deleteSwapRequest.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.error.message || 'Failed to delete swap request'
+      })
+      // Load Swap Requests
+      .addCase(loadSwapRequests.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(loadSwapRequests.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.sentRequests = action.payload.sentRequests
+        state.receivedRequests = action.payload.receivedRequests
+        state.completedSwaps = action.payload.completedSwaps
+      })
+      .addCase(loadSwapRequests.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.error.message || 'Failed to load swap requests'
+      })
+      // Load Feedback
+      .addCase(loadFeedback.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(loadFeedback.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.feedback = action.payload.feedback
+      })
+      .addCase(loadFeedback.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.error.message || 'Failed to load feedback'
       })
   },
 })

@@ -1,27 +1,10 @@
 import { userService } from '../services/database';
 import bcrypt from 'bcryptjs';
+import { User } from '../store/slices/authSlice';
 
 export interface AuthResponse {
-  success: boolean;
-  message: string;
-  token?: string;
-  user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    profilePhoto?: string;
-    bio?: string;
-    location?: string;
-    isPublic: boolean;
-    availability: {
-      weekends: boolean;
-      evenings: boolean;
-      weekdays: boolean;
-      custom?: string;
-    };
-    rating: number;
-  };
+  user: User;
+  token: string | null;
 }
 
 export const authAPI = {
@@ -74,16 +57,17 @@ export const authAPI = {
           weekdays: false,
           custom: ''
         },
-        rating: user.rating || 0
+        rating: user.rating || 0,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString()
       };
 
       return {
-        success: true,
-        message: 'User registered successfully',
-        user: userWithoutPassword
+        user: userWithoutPassword,
+        token: null // You can add JWT token generation here if needed
       };
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'Registration failed');
+      throw error;
     }
   },
 
@@ -121,16 +105,17 @@ export const authAPI = {
           weekdays: false,
           custom: ''
         },
-        rating: user.rating || 0
+        rating: user.rating || 0,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString()
       };
 
       return {
-        success: true,
-        message: 'Login successful',
-        user: userWithoutPassword
+        user: userWithoutPassword,
+        token: null // You can add JWT token generation here if needed
       };
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'Login failed');
+      throw error;
     }
   },
 
@@ -158,13 +143,14 @@ export const authAPI = {
           weekdays: false,
           custom: ''
         },
-        rating: user.rating || 0
+        rating: user.rating || 0,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString()
       };
 
       return {
-        success: true,
-        message: 'Profile retrieved successfully',
-        user: userWithoutPassword
+        user: userWithoutPassword,
+        token: null
       };
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get profile');
@@ -172,27 +158,10 @@ export const authAPI = {
   },
 
   // Update user profile
-  async updateProfile(userId: string, profileData: {
-    firstName?: string;
-    lastName?: string;
-    bio?: string;
-    location?: string;
-    profilePhoto?: string;
-    isPublic?: boolean;
-    availability?: {
-      weekends: boolean;
-      evenings: boolean;
-      weekdays: boolean;
-      custom?: string;
-    };
-  }): Promise<AuthResponse> {
+  async updateProfile(userId: string, profileData: Partial<Omit<User, 'createdAt' | 'updatedAt'>>): Promise<AuthResponse> {
     try {
       const updatedUser = await userService.update(userId, profileData);
-      if (!updatedUser) {
-        throw new Error('User not found');
-      }
-
-      // Create user object without password
+      
       const userWithoutPassword = {
         id: updatedUser.id,
         firstName: updatedUser.firstName,
@@ -208,16 +177,44 @@ export const authAPI = {
           weekdays: false,
           custom: ''
         },
-        rating: updatedUser.rating || 0
+        rating: updatedUser.rating || 0,
+        createdAt: updatedUser.createdAt.toISOString(),
+        updatedAt: updatedUser.updatedAt.toISOString()
       };
 
       return {
-        success: true,
-        message: 'Profile updated successfully',
-        user: userWithoutPassword
+        user: userWithoutPassword,
+        token: null
       };
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'Failed to update profile');
+      throw error;
     }
+  },
+
+  // Upload profile image
+  async uploadProfileImage(file: File): Promise<{ url: string }> {
+    try {
+      // For now, we'll use a simple approach with base64 encoding
+      // In production, you'd want to upload to a service like Cloudinary, S3, etc.
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64String = reader.result as string;
+          resolve({ url: base64String });
+        };
+        reader.onerror = () => {
+          reject(new Error('Failed to read file'));
+        };
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      throw new Error('Failed to upload image');
+    }
+  },
+
+  // Generate avatar URL based on user name
+  generateAvatarUrl(firstName: string, lastName: string): string {
+    const name = `${firstName} ${lastName}`.trim();
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=ffffff&size=200&rounded=true&bold=true`;
   }
 }; 

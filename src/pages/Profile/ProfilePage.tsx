@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../store/store'
 import { updateProfile } from '../../store/slices/authSlice'
 import { fetchUserSkills, addSkill, removeSkill } from '../../store/slices/skillsSlice'
 import { Skill } from '../../store/slices/skillsSlice'
 import ClickSpark from '../../components/ClickSpark'
-import { Plus } from 'lucide-react'
+import { Plus, Upload, User } from 'lucide-react'
+import { authAPI } from '../../api/auth'
 
 const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -38,6 +39,8 @@ const ProfilePage = () => {
 
   const [showAddOffered, setShowAddOffered] = useState(false)
   const [showAddWanted, setShowAddWanted] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (user?.id) {
@@ -88,6 +91,47 @@ const ProfilePage = () => {
     }
   }
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const result = await authAPI.uploadProfileImage(file)
+      setProfileData({ ...profileData, profilePhoto: result.url })
+    } catch (error) {
+      console.error('Failed to upload image:', error)
+      alert('Failed to upload image. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleGenerateAvatar = () => {
+    const avatarUrl = authAPI.generateAvatarUrl(profileData.firstName, profileData.lastName)
+    setProfileData({ ...profileData, profilePhoto: avatarUrl })
+  }
+
+  const getProfileImageSrc = () => {
+    if (profileData.profilePhoto) {
+      return profileData.profilePhoto
+    }
+    // Generate avatar URL as fallback
+    return authAPI.generateAvatarUrl(profileData.firstName, profileData.lastName)
+  }
+
   const skillsOffered = userSkills.filter((skill: Skill) => skill.type === 'offered')
   const skillsWanted = userSkills.filter((skill: Skill) => skill.type === 'wanted')
 
@@ -124,19 +168,53 @@ const ProfilePage = () => {
               Profile Photo
             </label>
             <div className="flex items-center space-x-4">
-              <img
-                src={profileData.profilePhoto || 'https://via.placeholder.com/100x100?text=No+Photo'}
-                alt="Profile"
-                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-              />
-              {isEditing && (
-                <input
-                  type="text"
-                  placeholder="Photo URL"
-                  value={profileData.profilePhoto}
-                  onChange={(e) => setProfileData({...profileData, profilePhoto: e.target.value})}
-                  className="input-field"
+              <div className="relative">
+                <img
+                  src={getProfileImageSrc()}
+                  alt="Profile"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
                 />
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                  </div>
+                )}
+              </div>
+              {isEditing && (
+                <div className="flex flex-col space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="btn-secondary text-sm flex items-center space-x-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateAvatar}
+                    disabled={isUploading}
+                    className="btn-secondary text-sm flex items-center space-x-2"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Generate Avatar</span>
+                  </button>
+                  <input
+                    type="text"
+                    placeholder="Or enter photo URL"
+                    value={profileData.profilePhoto}
+                    onChange={(e) => setProfileData({...profileData, profilePhoto: e.target.value})}
+                    className="input-field text-sm"
+                  />
+                </div>
               )}
             </div>
           </div>

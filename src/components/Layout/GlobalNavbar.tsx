@@ -5,6 +5,7 @@ import { RootState } from '../../store/store'
 import { logout } from '../../store/slices/authSlice'
 import { toggleSidebar } from '../../store/slices/uiSlice'
 import { useState, useEffect } from 'react'
+import { authAPI } from '../../api/auth'
 
 const GlobalNavbar = () => {
   const dispatch = useDispatch()
@@ -127,17 +128,11 @@ const GlobalNavbar = () => {
                 {/* User menu */}
                 <div className="relative">
                   <div className="flex items-center space-x-2 sm:space-x-3">
-                    {user?.profilePhoto ? (
-                      <img
-                        src={user.profilePhoto}
-                        alt={`${user.firstName} ${user.lastName}`}
-                        className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover ring-2 ring-[#2c2f33] hover:ring-[#7289da] transition-all duration-200 shadow-sm"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 sm:h-9 sm:w-9 bg-[#7289da] rounded-full flex items-center justify-center ring-2 ring-[#2c2f33] hover:ring-[#5b6eae] transition-all duration-200 shadow-sm">
-                        <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                      </div>
-                    )}
+                    <img
+                      src={user?.profilePhoto || authAPI.generateAvatarUrl(user?.firstName || '', user?.lastName || '')}
+                      alt={`${user?.firstName} ${user?.lastName}`}
+                      className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover ring-2 ring-[#2c2f33] hover:ring-[#7289da] transition-all duration-200 shadow-sm"
+                    />
                     <span className="hidden sm:block text-sm font-medium text-[#ffffff]">
                       {user?.firstName} {user?.lastName}
                     </span>

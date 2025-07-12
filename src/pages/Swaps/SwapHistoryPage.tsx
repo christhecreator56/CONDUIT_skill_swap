@@ -4,80 +4,11 @@ import { RootState } from '../../store/store'
 import { SwapRequest, SwapFeedback } from '../../store/slices/swapsSlice'
 
 const SwapHistoryPage = () => {
-  const { isLoading } = useSelector((state: RootState) => state.swaps)
+  const { isLoading, completedSwaps, feedback } = useSelector((state: RootState) => state.swaps)
   const { user } = useSelector((state: RootState) => state.auth)
   
   const [selectedSwap, setSelectedSwap] = useState<SwapRequest | null>(null)
   const [showFeedback, setShowFeedback] = useState(false)
-
-  // Mock data for demonstration
-  const mockCompletedSwaps: SwapRequest[] = [
-    {
-      id: '1',
-      requesterId: '2',
-      requesterName: 'Sarah Johnson',
-      requesterPhoto: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      skillOffered: {
-        id: '1',
-        name: 'Guitar Lessons',
-        description: 'Learn acoustic and electric guitar',
-        category: 'Music'
-      },
-      skillRequested: {
-        id: '2',
-        name: 'React Development',
-        description: 'Building modern web applications',
-        category: 'Technology'
-      },
-      status: 'completed',
-      message: 'Great exchange! Sarah taught me amazing guitar techniques.',
-      createdAt: new Date(Date.now() - 604800000).toISOString(),
-      updatedAt: new Date(Date.now() - 518400000).toISOString()
-    },
-    {
-      id: '2',
-      requesterId: '3',
-      requesterName: 'Marco Rossi',
-      requesterPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      skillOffered: {
-        id: '3',
-        name: 'Italian Cooking',
-        description: 'Authentic Italian recipes and techniques',
-        category: 'Cooking'
-      },
-      skillRequested: {
-        id: '4',
-        name: 'Photography',
-        description: 'Digital photography and editing',
-        category: 'Art'
-      },
-      status: 'completed',
-      message: 'Marco is an excellent cooking instructor!',
-      createdAt: new Date(Date.now() - 1209600000).toISOString(),
-      updatedAt: new Date(Date.now() - 1123200000).toISOString()
-    }
-  ]
-
-  const mockFeedback: SwapFeedback[] = [
-    {
-      id: '1',
-      swapId: '1',
-      fromUserId: '1',
-      toUserId: '2',
-      rating: 5,
-      comment: 'Sarah is an amazing guitar teacher! She was patient and explained everything clearly. Highly recommend!',
-      createdAt: new Date(Date.now() - 518400000).toISOString()
-    },
-    {
-      id: '2',
-      swapId: '1',
-      fromUserId: '2',
-      toUserId: '1',
-      rating: 4,
-      comment: 'Great React developer! Taught me a lot about modern web development.',
-      createdAt: new Date(Date.now() - 518400000).toISOString()
-    }
-  ]
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -88,7 +19,7 @@ const SwapHistoryPage = () => {
   }
 
   const getFeedbackForSwap = (swapId: string) => {
-    return mockFeedback.filter(f => f.swapId === swapId)
+    return feedback.filter(f => f.swapId === swapId)
   }
 
   const renderSwapCard = (swap: SwapRequest) => {
@@ -199,18 +130,18 @@ const SwapHistoryPage = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="card text-center">
-          <div className="text-2xl font-bold text-primary-600">{mockCompletedSwaps.length}</div>
+          <div className="text-2xl font-bold text-primary-600">{completedSwaps.length}</div>
           <div className="text-sm text-gray-600">Total Swaps</div>
         </div>
         <div className="card text-center">
           <div className="text-2xl font-bold text-green-600">
-            {mockFeedback.filter(f => f.fromUserId === user?.id).length}
+            {feedback.filter(f => f.fromUserId === user?.id).length}
           </div>
           <div className="text-sm text-gray-600">Feedback Given</div>
         </div>
         <div className="card text-center">
           <div className="text-2xl font-bold text-blue-600">
-            {mockFeedback.filter(f => f.toUserId === user?.id).length}
+            {feedback.filter(f => f.toUserId === user?.id).length}
           </div>
           <div className="text-sm text-gray-600">Feedback Received</div>
         </div>
@@ -225,14 +156,14 @@ const SwapHistoryPage = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
             <p className="text-gray-600 mt-2">Loading history...</p>
           </div>
-        ) : mockCompletedSwaps.length === 0 ? (
+        ) : completedSwaps.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600">No completed swaps yet.</p>
             <p className="text-sm text-gray-500 mt-1">Complete your first skill exchange to see it here!</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {mockCompletedSwaps.map(renderSwapCard)}
+            {completedSwaps.map(renderSwapCard)}
           </div>
         )}
       </div>

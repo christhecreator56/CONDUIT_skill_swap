@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../store/store'
-import { respondToSwapRequest, submitFeedback, deleteSwapRequest } from '../../store/slices/swapsSlice'
+import { respondToSwapRequest, submitFeedback, deleteSwapRequest, loadSwapRequests, loadFeedback } from '../../store/slices/swapsSlice'
 import { SwapRequest } from '../../store/slices/swapsSlice'
 import ClickSpark from '../../components/ClickSpark'
 
 const SwapRequestsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { isLoading } = useSelector((state: RootState) => state.swaps)
+  const { isLoading, sentRequests, receivedRequests, completedSwaps } = useSelector((state: RootState) => state.swaps)
   
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'completed'>('received')
   const [selectedRequest, setSelectedRequest] = useState<SwapRequest | null>(null)
@@ -16,81 +16,14 @@ const SwapRequestsPage = () => {
     comment: ''
   })
 
-  // Mock data for demonstration
-  const mockReceivedRequests: SwapRequest[] = [
-    {
-      id: '1',
-      requesterId: '2',
-      requesterName: 'Sarah Johnson',
-      requesterPhoto: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      skillOffered: {
-        id: '1',
-        name: 'Guitar Lessons',
-        description: 'Learn acoustic and electric guitar',
-        category: 'Music'
-      },
-      skillRequested: {
-        id: '2',
-        name: 'React Development',
-        description: 'Building modern web applications',
-        category: 'Technology'
-      },
-      status: 'pending',
-      message: 'I\'d love to learn React development! I can teach you guitar in exchange.',
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString()
+  // Load data on component mount
+  useEffect(() => {
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+    if (currentUser.id) {
+      dispatch(loadSwapRequests(currentUser.id))
+      dispatch(loadFeedback(currentUser.id))
     }
-  ]
-
-  const mockSentRequests: SwapRequest[] = [
-    {
-      id: '2',
-      requesterId: '1',
-      requesterName: 'John Doe',
-      requesterPhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      skillOffered: {
-        id: '3',
-        name: 'Spanish',
-        description: 'Conversational Spanish speaking and writing',
-        category: 'Language'
-      },
-      skillRequested: {
-        id: '4',
-        name: 'Italian Cooking',
-        description: 'Authentic Italian recipes and techniques',
-        category: 'Cooking'
-      },
-      status: 'pending',
-      message: 'I can help you with Spanish in exchange for cooking lessons!',
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-      updatedAt: new Date(Date.now() - 172800000).toISOString()
-    }
-  ]
-
-  const mockCompletedSwaps: SwapRequest[] = [
-    {
-      id: '3',
-      requesterId: '3',
-      requesterName: 'Marco Rossi',
-      requesterPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      skillOffered: {
-        id: '5',
-        name: 'Italian Cooking',
-        description: 'Authentic Italian recipes and techniques',
-        category: 'Cooking'
-      },
-      skillRequested: {
-        id: '6',
-        name: 'Photography',
-        description: 'Digital photography and editing',
-        category: 'Art'
-      },
-      status: 'completed',
-      message: 'Great exchange! Marco taught me amazing Italian recipes.',
-      createdAt: new Date(Date.now() - 604800000).toISOString(),
-      updatedAt: new Date(Date.now() - 518400000).toISOString()
-    }
-  ]
+  }, [dispatch])
 
   const handleRespondToRequest = async (requestId: string, status: 'accepted' | 'rejected') => {
     try {
@@ -257,7 +190,7 @@ const SwapRequestsPage = () => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Received ({mockReceivedRequests.length})
+            Received ({receivedRequests.length})
           </button>
           <button
             onClick={() => setActiveTab('sent')}
@@ -267,7 +200,7 @@ const SwapRequestsPage = () => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Sent ({mockSentRequests.length})
+            Sent ({sentRequests.length})
           </button>
           <button
             onClick={() => setActiveTab('completed')}
@@ -277,7 +210,7 @@ const SwapRequestsPage = () => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Completed ({mockCompletedSwaps.length})
+            Completed ({completedSwaps.length})
           </button>
         </nav>
       </div>
@@ -293,36 +226,36 @@ const SwapRequestsPage = () => {
           <>
             {activeTab === 'received' && (
               <div className="space-y-4">
-                {mockReceivedRequests.length === 0 ? (
+                {receivedRequests.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-gray-600">No received requests yet.</p>
                   </div>
                 ) : (
-                  mockReceivedRequests.map(request => renderRequestCard(request, true))
+                  receivedRequests.map(request => renderRequestCard(request, true))
                 )}
               </div>
             )}
 
             {activeTab === 'sent' && (
               <div className="space-y-4">
-                {mockSentRequests.length === 0 ? (
+                {sentRequests.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-gray-600">No sent requests yet.</p>
                   </div>
                 ) : (
-                  mockSentRequests.map(request => renderRequestCard(request, false))
+                  sentRequests.map(request => renderRequestCard(request, false))
                 )}
               </div>
             )}
 
             {activeTab === 'completed' && (
               <div className="space-y-4">
-                {mockCompletedSwaps.length === 0 ? (
+                {completedSwaps.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-gray-600">No completed swaps yet.</p>
                   </div>
                 ) : (
-                  mockCompletedSwaps.map(request => renderRequestCard(request, false))
+                  completedSwaps.map(request => renderRequestCard(request, false))
                 )}
               </div>
             )}

@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { users, skills, swapRequests, feedback } from '../db/schema';
-import { eq, and, or, desc, ilike } from 'drizzle-orm';
+import { eq, and, or, desc, ilike, isNull } from 'drizzle-orm';
 import type { NewUser, NewSkill, NewSwapRequest, NewFeedback } from '../db/schema';
 import bcrypt from 'bcryptjs';
 
@@ -70,8 +70,9 @@ export const skillService = {
     proficiencyLevel?: string;
     type?: 'offered' | 'wanted';
     search?: string;
+    location?: string;
   }) {
-    const conditions = [];
+    const conditions = [eq(skills.isPublic, true)];
     if (filters?.category) {
       conditions.push(eq(skills.category, filters.category));
     }
@@ -90,7 +91,26 @@ export const skillService = {
         )
       );
     }
-    let query = db.select().from(skills);
+    // Location filter temporarily disabled due to nullable column type issues
+    // if (filters?.location) {
+    //   conditions.push(ilike(users.location, `%${filters.location}%`));
+    // }
+    
+    let query = db
+      .select({
+        skill: skills,
+        user: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profilePhoto: users.profilePhoto,
+          location: users.location,
+          rating: users.rating,
+        },
+      })
+      .from(skills)
+      .innerJoin(users, eq(skills.userId, users.id));
+    
     let result;
     if (conditions.length > 0) {
       result = await query.where(and(...conditions)).orderBy(desc(skills.createdAt));
@@ -136,6 +156,73 @@ export const swapRequestService = {
     return request;
   },
 
+  // Get detailed swap request by ID with related data
+  async getDetailedById(id: string) {
+    const [request] = await db
+      .select({
+        id: swapRequests.id,
+        requesterId: swapRequests.requesterId,
+        recipientId: swapRequests.recipientId,
+        skillOfferedId: swapRequests.skillOfferedId,
+        skillRequestedId: swapRequests.skillRequestedId,
+        message: swapRequests.message,
+        status: swapRequests.status,
+        createdAt: swapRequests.createdAt,
+        updatedAt: swapRequests.updatedAt,
+        requester: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profilePhoto: users.profilePhoto,
+        },
+        recipient: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profilePhoto: users.profilePhoto,
+        },
+        skillOffered: {
+          id: skills.id,
+          name: skills.name,
+          description: skills.description,
+          category: skills.category,
+        },
+        skillRequested: {
+          id: skills.id,
+          name: skills.name,
+          description: skills.description,
+          category: skills.category,
+        },
+      })
+      .from(swapRequests)
+      .innerJoin(users, eq(swapRequests.requesterId, users.id))
+      .innerJoin(skills, eq(swapRequests.skillOfferedId, skills.id))
+      .where(eq(swapRequests.id, id));
+    
+    if (!request) return null;
+
+    // Get recipient and skill requested data separately due to join limitations
+    const [recipient] = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      profilePhoto: users.profilePhoto,
+    }).from(users).where(eq(users.id, request.recipientId));
+
+    const [skillRequested] = await db.select({
+      id: skills.id,
+      name: skills.name,
+      description: skills.description,
+      category: skills.category,
+    }).from(skills).where(eq(skills.id, request.skillRequestedId));
+
+    return {
+      ...request,
+      recipient,
+      skillRequested,
+    };
+  },
+
   // Get swap requests by user ID (sent or received)
   async getByUserId(userId: string, type: 'sent' | 'received' = 'received') {
     const condition = type === 'sent' 
@@ -143,6 +230,70 @@ export const swapRequestService = {
       : eq(swapRequests.recipientId, userId);
     
     return await db.select().from(swapRequests).where(condition).orderBy(desc(swapRequests.createdAt));
+  },
+
+  // Get detailed swap requests by user ID with related data
+  async getDetailedByUserId(userId: string, type: 'sent' | 'received' = 'received') {
+    const condition = type === 'sent' 
+      ? eq(swapRequests.requesterId, userId)
+      : eq(swapRequests.recipientId, userId);
+    
+    const requests = await db
+      .select({
+        id: swapRequests.id,
+        requesterId: swapRequests.requesterId,
+        recipientId: swapRequests.recipientId,
+        skillOfferedId: swapRequests.skillOfferedId,
+        skillRequestedId: swapRequests.skillRequestedId,
+        message: swapRequests.message,
+        status: swapRequests.status,
+        createdAt: swapRequests.createdAt,
+        updatedAt: swapRequests.updatedAt,
+        requester: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profilePhoto: users.profilePhoto,
+        },
+        skillOffered: {
+          id: skills.id,
+          name: skills.name,
+          description: skills.description,
+          category: skills.category,
+        },
+      })
+      .from(swapRequests)
+      .innerJoin(users, eq(swapRequests.requesterId, users.id))
+      .innerJoin(skills, eq(swapRequests.skillOfferedId, skills.id))
+      .where(condition)
+      .orderBy(desc(swapRequests.createdAt));
+
+    // Get recipient and skill requested data for each request
+    const detailedRequests = await Promise.all(
+      requests.map(async (request) => {
+        const [recipient] = await db.select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profilePhoto: users.profilePhoto,
+        }).from(users).where(eq(users.id, request.recipientId));
+
+        const [skillRequested] = await db.select({
+          id: skills.id,
+          name: skills.name,
+          description: skills.description,
+          category: skills.category,
+        }).from(skills).where(eq(skills.id, request.skillRequestedId));
+
+        return {
+          ...request,
+          recipient,
+          skillRequested,
+        };
+      })
+    );
+
+    return detailedRequests;
   },
 
   // Update swap request status
@@ -153,6 +304,16 @@ export const swapRequestService = {
       .where(eq(swapRequests.id, id))
       .returning();
     return request;
+  },
+
+  // Update swap request status and return detailed data
+  async updateStatusDetailed(id: string, status: typeof swapRequests.$inferSelect['status']) {
+    await db
+      .update(swapRequests)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(swapRequests.id, id));
+    
+    return this.getDetailedById(id);
   },
 
   // Delete swap request
@@ -175,6 +336,74 @@ export const swapRequestService = {
         )
       )
       .orderBy(desc(swapRequests.updatedAt));
+  },
+
+  // Get detailed completed swaps
+  async getDetailedCompleted(userId: string) {
+    const requests = await db
+      .select({
+        id: swapRequests.id,
+        requesterId: swapRequests.requesterId,
+        recipientId: swapRequests.recipientId,
+        skillOfferedId: swapRequests.skillOfferedId,
+        skillRequestedId: swapRequests.skillRequestedId,
+        message: swapRequests.message,
+        status: swapRequests.status,
+        createdAt: swapRequests.createdAt,
+        updatedAt: swapRequests.updatedAt,
+        requester: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profilePhoto: users.profilePhoto,
+        },
+        skillOffered: {
+          id: skills.id,
+          name: skills.name,
+          description: skills.description,
+          category: skills.category,
+        },
+      })
+      .from(swapRequests)
+      .innerJoin(users, eq(swapRequests.requesterId, users.id))
+      .innerJoin(skills, eq(swapRequests.skillOfferedId, skills.id))
+      .where(
+        and(
+          eq(swapRequests.status, 'completed'),
+          or(
+            eq(swapRequests.requesterId, userId),
+            eq(swapRequests.recipientId, userId)
+          )
+        )
+      )
+      .orderBy(desc(swapRequests.updatedAt));
+
+    // Get recipient and skill requested data for each request
+    const detailedRequests = await Promise.all(
+      requests.map(async (request) => {
+        const [recipient] = await db.select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profilePhoto: users.profilePhoto,
+        }).from(users).where(eq(users.id, request.recipientId));
+
+        const [skillRequested] = await db.select({
+          id: skills.id,
+          name: skills.name,
+          description: skills.description,
+          category: skills.category,
+        }).from(skills).where(eq(skills.id, request.skillRequestedId));
+
+        return {
+          ...request,
+          recipient,
+          skillRequested,
+        };
+      })
+    );
+
+    return detailedRequests;
   },
 };
 

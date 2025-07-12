@@ -5,23 +5,26 @@ import ClickSpark from '../components/ClickSpark'
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-[#313338] pt-20 sm:pt-24">
-      {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
-        <div className="text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-[#F2F3F5] mb-4 sm:mb-6">
+    <div className="min-h-screen bg-black flex flex-col">
+      {/* Hero Section: full viewport height, centered, with navbar offset */}
+      <div className="relative flex flex-col justify-center items-center min-h-screen" style={{paddingTop: '6rem'}}>
+        <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[12rem] font-bold text-white tracking-wider text-center">
+          CONDuit
+        </h1>
+        <div className="mt-8 w-full flex flex-col items-center justify-center px-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#F2F3F5] mb-4 sm:mb-6 text-center">
             Connect, Learn, and
-            <span className="text-[#7289da]"> Exchange Skills</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-[#949BA4] mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
+            <span className="text-[#7289da] block"> Exchange Skills</span>
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-[#949BA4] mb-6 sm:mb-8 max-w-xl text-center">
             Join a community of learners and teachers. Share your expertise, learn from others, 
             and build meaningful connections through skill exchange.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full max-w-xs mx-auto">
             <ClickSpark sparkColor="#7289da">
               <Link 
                 to="/register" 
-                className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-3 inline-flex items-center justify-center touch-manipulation discord-hover"
+                className="btn-primary text-xs sm:text-sm px-3 py-2 min-w-[100px] inline-flex items-center justify-center touch-manipulation discord-hover"
               >
                 Start Your Journey
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -30,7 +33,7 @@ const HomePage = () => {
             <ClickSpark sparkColor="#7289da">
               <Link 
                 to="/login" 
-                className="btn-secondary text-base sm:text-lg px-6 sm:px-8 py-3 touch-manipulation discord-hover"
+                className="btn-secondary text-xs sm:text-sm px-3 py-2 min-w-[100px] inline-flex items-center justify-center touch-manipulation discord-hover"
               >
                 Sign In
               </Link>
@@ -40,7 +43,7 @@ const HomePage = () => {
       </div>
 
       {/* Features Section */}
-      <div className="bg-[#2B2D31] py-12 sm:py-20">
+      <div className="py-12 sm:py-16 lg:py-20 bg-[#313338] w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl font-bold text-[#F2F3F5] mb-3 sm:mb-4">
@@ -104,7 +107,7 @@ const HomePage = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="bg-[#7289da] py-12 sm:py-16">
+      <div className="py-12 sm:py-16 bg-[#2B2D31] w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
             <div>
@@ -131,7 +134,7 @@ const HomePage = () => {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-[#2B2D31] py-12 sm:py-20">
+      <div className="py-12 sm:py-16 lg:py-20 bg-[#313338] w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-[#F2F3F5] mb-3 sm:mb-4">
             Ready to Start Your Skill Exchange Journey?
@@ -152,7 +155,7 @@ const HomePage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#1E1F22] text-white py-8 sm:py-12">
+      <footer className="bg-[#1E1F22] text-white py-8 sm:py-12 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-xl sm:text-2xl font-bold text-[#7289da] mb-3 sm:mb-4">CONDuit</h3>

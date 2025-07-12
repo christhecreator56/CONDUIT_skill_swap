@@ -81,63 +81,26 @@ export const fetchUserSkills = createAsyncThunk(
 
 export const fetchSkillListings = createAsyncThunk(
   'skills/fetchSkillListings',
-  async () => {
-    // TODO: Replace with actual API call
-    const response = await new Promise<SkillListing[]>((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            id: '1',
-            skill: {
-              id: '1',
-              name: 'Guitar Lessons',
-              description: 'Learn acoustic and electric guitar',
-              category: 'Music',
-              proficiencyLevel: 'advanced',
-              userId: '2',
-              type: 'offered',
-              createdAt: new Date().toISOString(),
-              isPublic: true,
-            },
-            user: {
-              id: '2',
-              firstName: 'Sarah',
-              lastName: 'Johnson',
-              profilePhoto: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-              rating: 4.9,
-              location: 'Los Angeles, CA',
-            },
-            isAvailable: true,
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: '2',
-            skill: {
-              id: '2',
-              name: 'Italian Cooking',
-              description: 'Authentic Italian recipes and techniques',
-              category: 'Cooking',
-              proficiencyLevel: 'expert',
-              userId: '3',
-              type: 'offered',
-              createdAt: new Date().toISOString(),
-              isPublic: true,
-            },
-            user: {
-              id: '3',
-              firstName: 'Marco',
-              lastName: 'Rossi',
-              profilePhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-              rating: 4.7,
-              location: 'San Francisco, CA',
-            },
-            isAvailable: true,
-            createdAt: new Date().toISOString(),
-          },
-        ])
-      }, 1000)
-    })
-    return response
+  async (filters?: { category?: string; proficiencyLevel?: string; location?: string; search?: string }) => {
+    const skills = await skillService.getPublicSkills(filters);
+    // Map to SkillListing format
+    return skills.map((item: any) => ({
+      id: item.skill.id,
+      skill: {
+        id: item.skill.id,
+        name: item.skill.name,
+        description: item.skill.description,
+        category: item.skill.category,
+        proficiencyLevel: item.skill.proficiencyLevel,
+        userId: item.skill.userId,
+        type: item.skill.type,
+        createdAt: item.skill.createdAt,
+        isPublic: item.skill.isPublic,
+      },
+      user: item.user,
+      isAvailable: item.skill.isAvailable,
+      createdAt: item.skill.createdAt,
+    }));
   }
 )
 

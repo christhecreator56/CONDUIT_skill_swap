@@ -57,7 +57,8 @@ export const swapsAPI = {
   async createSwapRequest(data: SwapRequestData) {
     try {
       const request = await swapRequestService.create(data);
-      return request;
+      // Return detailed data after creation
+      return await swapRequestService.getDetailedById(request.id);
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to create swap request');
     }
@@ -66,7 +67,7 @@ export const swapsAPI = {
   // Get swap request by ID
   async getSwapRequestById(requestId: string) {
     try {
-      const request = await swapRequestService.getById(requestId);
+      const request = await swapRequestService.getDetailedById(requestId);
       if (!request) {
         throw new Error('Swap request not found');
       }
@@ -79,7 +80,7 @@ export const swapsAPI = {
   // Get swap requests by user ID
   async getSwapRequestsByUserId(userId: string, type: 'sent' | 'received' = 'received') {
     try {
-      return await swapRequestService.getByUserId(userId, type);
+      return await swapRequestService.getDetailedByUserId(userId, type);
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get swap requests');
     }
@@ -88,7 +89,7 @@ export const swapsAPI = {
   // Update swap request status
   async updateSwapRequestStatus(requestId: string, status: 'accepted' | 'rejected' | 'completed') {
     try {
-      const request = await swapRequestService.updateStatus(requestId, status);
+      const request = await swapRequestService.updateStatusDetailed(requestId, status);
       if (!request) {
         throw new Error('Swap request not found');
       }
@@ -110,7 +111,7 @@ export const swapsAPI = {
   // Get completed swaps
   async getCompletedSwaps(userId: string) {
     try {
-      return await swapRequestService.getCompleted(userId);
+      return await swapRequestService.getDetailedCompleted(userId);
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get completed swaps');
     }
@@ -151,7 +152,7 @@ export const swapsAPI = {
   // Respond to swap request (accept/reject)
   async respondToSwapRequest(requestId: string, status: 'accepted' | 'rejected') {
     try {
-      const request = await swapRequestService.updateStatus(requestId, status);
+      const request = await swapRequestService.updateStatusDetailed(requestId, status);
       if (!request) {
         throw new Error('Swap request not found');
       }
@@ -164,7 +165,7 @@ export const swapsAPI = {
   // Complete a swap
   async completeSwap(requestId: string) {
     try {
-      const request = await swapRequestService.updateStatus(requestId, 'completed');
+      const request = await swapRequestService.updateStatusDetailed(requestId, 'completed');
       if (!request) {
         throw new Error('Swap request not found');
       }
